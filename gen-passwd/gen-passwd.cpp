@@ -18,7 +18,7 @@ bool validate(string p) {
 		&& any_of(p.begin(), p.end(), [](int i) { return islower(i); })
 		&& any_of(p.begin(), p.end(), [](int i) { return isdigit(i); })
 		&& count_if(p.begin(), p.end(), [](int i) { return ispunct(i); }) >= 1
-		&& count_if(p.begin(), p.end(), [](int i) { return ispunct(i); }) < p.length() / 5;
+		&& count_if(p.begin(), p.end(), [](int i) { return ispunct(i); }) < p.length() / 4;
 }
 
 string gen_password(int len) {
