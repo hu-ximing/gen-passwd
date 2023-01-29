@@ -63,8 +63,8 @@ void print_help()
 {
 	cout << "Usage: gen-passwd [options] [length] [count]\n"
 		 << "Options:\n"
-		 << "  -y  Use symbols\n"
-		 << "  -h  Print this help\n";
+		 << "  -y  Use symbols. By default only letters and digits are included.\n"
+		 << "  -h  Print this help message.\n";
 }
 
 int main(int argc, char **argv)
