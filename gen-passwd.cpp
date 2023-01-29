@@ -6,45 +6,104 @@
 #include <iostream>
 #include <random>
 #include <string>
+#include <unistd.h>
 
-using namespace std;
+using std::cout;
 
 std::random_device rd;
-std::mt19937_64 mt(rd());
-std::uniform_int_distribution<int> dist(33, 126);
+std::mt19937_64 engine(rd());
 
-bool validate(string p)
+const std::string letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+const std::string digits = "0123456789";
+const std::string symbols = "!@#$%^&*()_+{}|:<>?`~-=[]\\;',./\"";
+
+bool validate(std::string p, bool use_symbols)
 {
-	return any_of(p.begin(), p.end(), [](int i)
-				  { return isupper(i); }) &&
-		   any_of(p.begin(), p.end(), [](int i)
-				  { return islower(i); }) &&
-		   any_of(p.begin(), p.end(), [](int i)
-				  { return isdigit(i); }) &&
-		   any_of(p.begin(), p.end(), [](int i)
-				  { return ispunct(i); });
+	return std::any_of(p.begin(), p.end(), [](int i)
+					   { return isupper(i); }) &&
+		   std::any_of(p.begin(), p.end(), [](int i)
+					   { return islower(i); }) &&
+		   std::any_of(p.begin(), p.end(), [](int i)
+					   { return isdigit(i); }) &&
+		   !(use_symbols ^ std::any_of(p.begin(), p.end(), [](int i)
+									   { return ispunct(i); }));
 }
 
-string gen_password(int len)
+std::string gen_password(int len, bool use_symbols)
 {
-	string p(len, 0);
-	int max_attempt = 1024;
+	std::string charset;
+	if (use_symbols)
+	{
+		charset = letters + digits + symbols;
+	}
+	else
+	{
+		charset = letters + digits;
+	}
+	std::uniform_int_distribution<int> dist(0, charset.size() - 1);
+
+	std::string p(len, 0);
+	const int max_attempt = 1024;
 	for (int ct = 0; ct < max_attempt; ct++)
 	{
-		generate(p.begin(), p.end(), []()
-				 { return dist(mt); });
-		if (validate(p))
+		for (int i = 0; i < len; i++)
+		{
+			p[i] = charset[dist(engine)];
+		}
+		if (validate(p, use_symbols))
 		{
 			return p;
 		}
 	}
-	return "Failed to generate password. max_attempt: " + to_string(max_attempt);
+	cout << "Failed to generate password. max_attempt: " << max_attempt << '\n';
+	exit(2);
+}
+
+void print_help()
+{
+	cout << "Usage: gen-passwd [options] [length] [count]\n"
+		 << "Options:\n"
+		 << "  -y  Use symbols\n"
+		 << "  -h  Print this help\n";
 }
 
 int main(int argc, char **argv)
 {
-	int len;
-	len = (argc == 1) ? 18 : atoi(argv[1]);
+	int len = 20;
+	int pw_count = 10;
+	bool use_symbols = false;
 
-	cout << gen_password(len) << '\n';
+	int opt;
+	while ((opt = getopt(argc, argv, "yh")) != -1)
+	{
+		switch (opt)
+		{
+		case 'y':
+			use_symbols = true;
+			break;
+		case 'h':
+			print_help();
+			return 0;
+		case '?':
+			print_help();
+			return 1;
+		}
+	}
+	for (int i = 0; optind < argc; optind++, i++)
+	{
+		switch (i)
+		{
+		case 0:
+			len = atoi(argv[optind]);
+			break;
+		case 1:
+			pw_count = atoi(argv[optind]);
+			break;
+		}
+	}
+	for (int i = 0; i < pw_count; i++)
+	{
+		cout << gen_password(len, use_symbols) << '\n';
+	}
+	return 0;
 }
