@@ -10,9 +10,6 @@
 
 using std::cout;
 
-std::random_device rd;
-std::mt19937_64 engine(rd());
-
 const std::string letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 const std::string digits = "0123456789";
 const std::string symbols = "!@#$%^&*()_+{}|:<>?`~-=[]\\;',./\"";
@@ -29,19 +26,12 @@ bool validate(std::string p, bool use_symbols)
 									   { return ispunct(i); }));
 }
 
-std::string gen_password(int len, bool use_symbols)
+std::string gen_password(std::string charset,
+						 std::mt19937_64 engine,
+						 std::uniform_int_distribution<int> dist,
+						 int len,
+						 bool use_symbols)
 {
-	std::string charset;
-	if (use_symbols)
-	{
-		charset = letters + digits + symbols;
-	}
-	else
-	{
-		charset = letters + digits;
-	}
-	std::uniform_int_distribution<int> dist(0, charset.size() - 1);
-
 	std::string p(len, 0);
 	const int max_attempt = 1024;
 	for (int ct = 0; ct < max_attempt; ct++)
@@ -56,7 +46,7 @@ std::string gen_password(int len, bool use_symbols)
 		}
 	}
 	cout << "Failed to generate password. max_attempt: " << max_attempt << '\n';
-	exit(2);
+	return "";
 }
 
 void print_help()
@@ -101,9 +91,21 @@ int main(int argc, char **argv)
 			break;
 		}
 	}
+	std::string charset;
+	if (use_symbols)
+	{
+		charset = letters + digits + symbols;
+	}
+	else
+	{
+		charset = letters + digits;
+	}
+	std::random_device rd;
+	std::mt19937_64 engine(rd());
+	std::uniform_int_distribution<int> dist(0, charset.size() - 1);
 	for (int i = 0; i < pw_count; i++)
 	{
-		cout << gen_password(len, use_symbols) << '\n';
+		cout << gen_password(charset, engine, dist, len, use_symbols) << '\n';
 	}
 	return 0;
 }
