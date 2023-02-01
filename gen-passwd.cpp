@@ -26,9 +26,9 @@ bool validate(std::string p, bool use_symbols)
 									   { return ispunct(i); }));
 }
 
-std::string gen_password(std::string charset,
-						 std::mt19937_64 engine,
-						 std::uniform_int_distribution<int> dist,
+std::string gen_password(std::string &charset,
+						 std::mt19937_64 &engine,
+						 std::uniform_int_distribution<int> &dist,
 						 int len,
 						 bool use_symbols)
 {
